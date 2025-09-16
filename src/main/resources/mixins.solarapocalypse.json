@@ -1,0 +1,15 @@
+{
+  "package": "com.yor42.solarapocalypse.mixin",
+  "required": true,
+  "refmap": "mixins.solarapocalypse.refmap.json",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8.5",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinGrassBlock",
+    "MixinWorld"
+  ],
+  "server": [],
+  "client": [
+    "MixinRenderGlobal"]
+}
