@@ -17,6 +17,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import java.util.Iterator;
+
 @Mod.EventBusSubscriber
 public class EventHandler {
 
@@ -47,7 +49,8 @@ public class EventHandler {
             return;
         }
 
-        for (Chunk chunk : world.getChunkProvider().getLoadedChunks()) {
+        for (Iterator<Chunk> it = world.getPersistentChunkIterable(world.getPlayerChunkMap().getChunkIterator()); it.hasNext(); ) {
+            Chunk chunk = it.next();
             for (int i = 0; i < ApocalypseConfig.ChunkUpdatesPerTick; i++) {
 
                 int x = chunk.x * 16 + world.rand.nextInt(16);
