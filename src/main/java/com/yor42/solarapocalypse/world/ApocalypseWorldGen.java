@@ -29,6 +29,6 @@ public class ApocalypseWorldGen implements IWorldGenerator {
             return;
         }
 
-        ApocalypseHelper.doApocalypseCatchUp(world, world.getChunk(chunkX, chunkZ), stage, world.rand);
+        ApocalypseHelper.doApocalypseCatchUp(world, world.getChunk(chunkX, chunkZ), stage, world.rand, true);
     }
 }

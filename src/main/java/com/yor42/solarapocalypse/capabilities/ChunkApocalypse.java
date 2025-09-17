@@ -28,7 +28,7 @@ public class ChunkApocalypse implements IChunkApocalypse {
     }
 
     @Override
-    public void setLastUnlodedTime(long time) {
+    public void setLastUpdateTime(long time) {
         this.lastUnlodedTime = time;
     }
 }

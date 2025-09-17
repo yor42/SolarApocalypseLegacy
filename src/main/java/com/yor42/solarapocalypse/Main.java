@@ -57,7 +57,7 @@ public class Main {
     public void preInit(FMLPreInitializationEvent event) {
         LOGGER.info("Hello From {}!", Tags.MOD_NAME);
         GameRegistry.registerWorldGenerator(new ApocalypseWorldGen(), Integer.MAX_VALUE);
-        CapabilityManager.INSTANCE.register(IChunkApocalypse.class, new Capability.IStorage<IChunkApocalypse>() {
+        CapabilityManager.INSTANCE.register(IChunkApocalypse.class, new Capability.IStorage<>() {
             @Nullable
             @Override
             public NBTBase writeNBT(Capability<IChunkApocalypse> capability, IChunkApocalypse instance, EnumFacing side) {
@@ -70,9 +70,9 @@ public class Main {
 
             @Override
             public void readNBT(Capability<IChunkApocalypse> capability, IChunkApocalypse instance, EnumFacing side, NBTBase nbt) {
-                NBTTagCompound compound = (NBTTagCompound)nbt;
+                NBTTagCompound compound = (NBTTagCompound) nbt;
                 instance.setStage(compound.getInteger("lastUnlodedTime"));
-                instance.setLastUnlodedTime(compound.getLong("lastUnlodedTime"));
+                instance.setLastUpdateTime(compound.getLong("lastUnlodedTime"));
             }
         }, ChunkApocalypse::new);
     }
