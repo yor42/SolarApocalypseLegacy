@@ -6,6 +6,8 @@ import com.yor42.solarapocalypse.capabilities.IChunkApocalypse;
 import com.yor42.solarapocalypse.world.SolarApocalypseData;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -18,7 +20,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 public class ApocalypseHelper {
-    public static void applyStageToBlockAt(WorldServer world, BlockPos currentPos, int globalStage, Random rand) {
+    public static void applyStageToBlockAt(WorldServer world, BlockPos currentPos, int globalStage, boolean catchup_mode, Random rand) {
 
         if(globalStage<=0){
             return;
@@ -32,11 +34,6 @@ public class ApocalypseHelper {
             {
                 if(block == Blocks.STONE){
                     world.setBlockState(currentPos, Blocks.MAGMA.getDefaultState(), 2);
-                }
-                else{
-                    if (world.getBlockState(currentPos.up()).getBlock() == Blocks.AIR){
-                        world.setBlockState(currentPos.up(), Blocks.FIRE.getDefaultState(), 2);
-                    }
                 }
             }
             case 5:
@@ -61,13 +58,19 @@ public class ApocalypseHelper {
             }
             case 3:
                 if(state.getMaterial().getCanBurn()){
-                    for(EnumFacing facing : EnumFacing.VALUES){
-                        if(facing == EnumFacing.DOWN){
-                            continue;
-                        }
-                        BlockPos pos = currentPos.offset(facing);
-                        if (world.getBlockState(pos).getBlock() == Blocks.AIR){
-                            world.setBlockState(pos, Blocks.FIRE.getDefaultState(), 2);
+                    if(catchup_mode){
+                        world.setBlockState(currentPos, Blocks.AIR.getDefaultState(), 2);
+                    }
+                    else {
+                        for (EnumFacing facing : EnumFacing.VALUES) {
+                            if (facing == EnumFacing.DOWN) {
+                                continue;
+                            }
+                            BlockPos pos = currentPos.offset(facing);
+                            if (world.getBlockState(pos).getBlock() == Blocks.AIR) {
+                                world.setBlockState(pos, Blocks.FIRE.getDefaultState(), 2);
+                                break;
+                            }
                         }
                     }
                 }
@@ -80,8 +83,9 @@ public class ApocalypseHelper {
             case 2:
                 if(block instanceof BlockSapling){
                     world.setBlockState(currentPos, Blocks.DEADBUSH.getDefaultState(), 2);
+                    break;
                 }
-                else if(block instanceof BlockMushroom || block instanceof BlockCrops || block instanceof BlockVine || block instanceof BlockCocoa || block instanceof BlockCactus || block instanceof BlockSnowBlock || block instanceof BlockReed) {
+                else if(block instanceof BlockBush || block instanceof BlockVine || block instanceof BlockCocoa || block instanceof BlockCactus || block instanceof BlockSnowBlock || block instanceof BlockReed) {
                     world.setBlockState(currentPos, Blocks.AIR.getDefaultState(), 2);
                 }
                 else if(block instanceof BlockGrassPath){
@@ -96,6 +100,9 @@ public class ApocalypseHelper {
                 }
                 else if(block instanceof BlockGrass || block instanceof BlockMycelium){
                     world.setBlockState(currentPos, Blocks.DIRT.getDefaultState(), 2);
+                }
+                else if(block == Blocks.MOSSY_COBBLESTONE){
+                    world.setBlockState(currentPos, Blocks.COBBLESTONE.getDefaultState(), 2);
                 }
         }
 
@@ -115,9 +122,30 @@ public class ApocalypseHelper {
         }
     }
 
+    public static void BurnBabyBurn(Entity entity){
+        World world = entity.world;
+        if (world.provider.getDimension() != 0 || entity.ticksExisted%19 != 0) {
+            return;
+        }
+        SolarApocalypseData data = SolarApocalypseData.get(world);
+        int stage = data.getStage();
+        if (stage < 3) {
+            return;
+        }
+
+        if (!world.isDaytime() || world.isRemote || !world.canSeeSky(new BlockPos(entity.posX, entity.posY + (double) entity.getEyeHeight(), entity.posZ)) || entity.isInWater() || (entity instanceof EntityPlayer && (((EntityPlayer) entity).isCreative() || ((EntityPlayer) entity).isSpectator()))) {
+            return;
+        }
+        entity.setFire(8);
+    }
+
     public static void applyStageToEntireChunk(World world, Chunk chunk, int stageToApply, Random rand, BiPredicate<BlockPos, Random> chance, boolean scanAll) {
-        int worldX = chunk.x * 16+8;
-        int worldZ = chunk.z * 16+8;
+        int worldX = (chunk.x * 16)+8;
+        int worldZ = (chunk.z * 16)+8;
+
+        if(!chunk.isLoaded()){
+            return;
+        }
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -126,12 +154,12 @@ public class ApocalypseHelper {
                     IBlockState state = world.getBlockState(currentPos);
                     Block block = state.getBlock();
 
-                    if (block == Blocks.AIR || world.isRemote || (!world.canBlockSeeSky(currentPos) && !scanAll)) {
+                    if (block == Blocks.AIR || world.isRemote) {
                         continue;
                     }
 
                     if(chance.test(currentPos, rand)) {
-                        ApocalypseHelper.applyStageToBlockAt((WorldServer) world, currentPos, stageToApply, rand);
+                        ApocalypseHelper.applyStageToBlockAt((WorldServer) world, currentPos, stageToApply, scanAll, rand);
                     }
 
                     if(state.isOpaqueCube() && !state.getMaterial().getCanBurn()){

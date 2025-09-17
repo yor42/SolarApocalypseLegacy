@@ -30,6 +30,13 @@ public class CommandStartApocalypse extends CommandBase {
         COMMAND.put("now", ((minecraftServer, iCommandSender) -> {
 
             World world = minecraftServer.getWorld(0);
+            SolarApocalypseData data = SolarApocalypseData.get(world);
+            if(data.isApocalypseStarted()){
+                if(iCommandSender instanceof EntityPlayerMP player) {
+                    player.sendMessage(new TextComponentTranslation("text.solarapocalypse.already_started"));
+                }
+                return;
+            }
             SolarApocalypseData.get(world).setApocalypseStage(world,0);
 
             for(EntityPlayerMP playerMP : minecraftServer.getPlayerList().getPlayers()){

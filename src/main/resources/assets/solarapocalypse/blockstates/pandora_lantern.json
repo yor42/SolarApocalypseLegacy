@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=true": {
+      "model": "solarapocalypse:pandora_lantern_on"
+    },
+    "active=false": {
+      "model": "solarapocalypse:pandora_lantern_off"
+    }
+  }
+}

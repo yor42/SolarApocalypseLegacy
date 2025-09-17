@@ -22,6 +22,8 @@ import java.util.Iterator;
 @Mod.EventBusSubscriber
 public class EventHandler {
 
+    private static int COUNTDOWN = 40;
+
     @SubscribeEvent
     public static void onWorldTick(TickEvent.WorldTickEvent event) {
 
@@ -45,13 +47,15 @@ public class EventHandler {
             }
         }
 
-        if (event.phase != TickEvent.Phase.END || event.world.isRemote || time % 20 != 0 || !world.isDaytime()) {
+        if (event.phase != TickEvent.Phase.END || event.world.isRemote || --COUNTDOWN > 0 || !world.isDaytime() || globalStage < 2) {
             return;
         }
 
+        COUNTDOWN = 20+world.rand.nextInt(40);
+
         for (Iterator<Chunk> it = world.getPersistentChunkIterable(world.getPlayerChunkMap().getChunkIterator()); it.hasNext(); ) {
             Chunk chunk = it.next();
-            for (int i = 0; i < ApocalypseConfig.ChunkUpdatesPerTick; i++) {
+            for (int i = 0; i < world.rand.nextInt(ApocalypseConfig.ChunkUpdatesPerTick); i++) {
 
                 int x = chunk.x * 16 + world.rand.nextInt(16);
                 int z = chunk.z * 16 + world.rand.nextInt(16);
@@ -62,12 +66,17 @@ public class EventHandler {
                     if (block == Blocks.AIR) {
                         continue;
                     }
-                    ApocalypseHelper.applyStageToBlockAt(world, currentPos, globalStage, world.rand);
+                    ApocalypseHelper.applyStageToBlockAt(world, currentPos, globalStage, false, world.rand);
                     Main.LOGGER.debug("Stage Applied @ {}", currentPos);
                     break;
                 }
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        ApocalypseHelper.BurnBabyBurn(event.player);
     }
 
     @SubscribeEvent

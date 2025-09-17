@@ -16,7 +16,7 @@ import java.util.Random;
 public class MixinGrassBlock
 {
     @Inject(method = "updateTick", at = @At("HEAD"), cancellable = true)
-    private void onUpdate(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci){
+    private static void onUpdate(World worldIn, BlockPos pos, IBlockState state, Random rand, CallbackInfo ci){
         SolarApocalypseData data = SolarApocalypseData.get(worldIn);
         int stage = data.getStage();
         if(stage>=1){

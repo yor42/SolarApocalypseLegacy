@@ -46,11 +46,11 @@ public class SolarApocalypseData extends WorldSavedData {
     }
 
     public boolean isApocalypseStarted(){
-        return this.getApocalypseStartedTime()<0;
+        return this.getApocalypseStartedTime()>=0;
     }
 
     public void setApocalypseStage(World world, int stage){
-        if(this.isApocalypseStarted() && stage>=0){
+        if(!this.isApocalypseStarted() && stage>=0){
             this.setApocalypseStartedTime(world.getWorldTime());
         }
         else if(stage <0){
@@ -70,14 +70,14 @@ public class SolarApocalypseData extends WorldSavedData {
     }
 
     public long getApocalypseElapsedTime(World world){
-        if(this.isApocalypseStarted()){
+        if(!this.isApocalypseStarted()){
             return -1;
         }
         return world.getWorldTime() - this.getApocalypseStartedTime();
     }
 
     public long getStageElapsedTime(World world){
-        if(this.isApocalypseStarted()){
+        if(!this.isApocalypseStarted()){
             return -1;
         }
         return world.getWorldTime() - this.getLastApocalypseStageUpdate();

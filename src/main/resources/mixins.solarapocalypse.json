@@ -6,10 +6,11 @@
   "minVersion": "0.8.5",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "MixinEntityCreature",
     "MixinGrassBlock",
     "MixinWorld"
   ],
   "server": [],
   "client": [
-    "MixinRenderGlobal"]
+  ]
 }
