@@ -147,9 +147,6 @@ public class ApocalypseHelper {
         }
     }
 
-    /**
-     * 일반 모드 - 시각적 효과 포함한 단계별 변환
-     */
     private static void applyNormalTransformation(WorldServer world, BlockPos currentPos, Block block, IBlockState state, int globalStage, Random rand) {
         switch (globalStage) {
             case 7:
@@ -229,9 +226,6 @@ public class ApocalypseHelper {
         }
     }
 
-    /**
-     * 최적화된 catchup 처리 - 배치로 여러 stage를 한번에 처리
-     */
     public static void doApocalypseCatchUp(World world, Chunk chunk, int to, Random rand, boolean offset) {
         // catchup 모드에서는 최종 단계만 적용하여 성능 향상
         ApocalypseHelper.applyStageToEntireChunk(world, chunk, to, rand,
@@ -256,7 +250,6 @@ public class ApocalypseHelper {
     public static void BurnBabyBurn(Entity entity) {
         World world = entity.world;
 
-        // 빠른 조건 체크 (가장 자주 실패하는 조건부터)
         if (world.provider.getDimension() != 0 ||
                 entity.ticksExisted % 19 != 0 ||
                 world.isRemote) {
@@ -287,9 +280,6 @@ public class ApocalypseHelper {
         entity.setFire(8);
     }
 
-    /**
-     * 최적화된 청크 전체 처리
-     */
     public static void applyStageToEntireChunk(World world, Chunk chunk, int stageToApply, Random rand,
                                                BiPredicate<BlockPos, Random> chance, boolean catchup_mode, boolean offset) {
         if (!chunk.isLoaded() || world.isRemote) {
@@ -305,7 +295,9 @@ public class ApocalypseHelper {
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-                // 위에서부터 아래로 스캔하여 첫 번째 고체 블록에서 처리
+                // 위에서부터 아래로 스캔
+                boolean foundSolidGround = false;
+
                 for (int y = chunk.getTopFilledSegment() + 15; y > 0; y--) {
                     mutablePos.setPos(worldX + x, y, worldZ + z);
                     IBlockState state = world.getBlockState(mutablePos);
@@ -319,14 +311,72 @@ public class ApocalypseHelper {
                     if (chance.test(mutablePos, rand)) {
                         // 불변 BlockPos로 변환하여 처리
                         BlockPos immutablePos = mutablePos.toImmutable();
-                        ApocalypseHelper.applyStageToBlockAt((WorldServer) world, immutablePos, stageToApply, catchup_mode, rand);
+
+                        if (catchup_mode) {
+                            // catchup 모드에서 연쇄 연소 시뮬레이션
+                            boolean blockWasRemoved = applyCatchupTransformationWithChaining(
+                                    (WorldServer) world, immutablePos, block, state, stageToApply);
+
+                            // 블록이 제거되었으면 계속 아래로 스캔 (연쇄 효과)
+                            if (blockWasRemoved) {
+                                continue;
+                            }
+                        } else {
+                            ApocalypseHelper.applyStageToBlockAt((WorldServer) world, immutablePos, stageToApply, catchup_mode, rand);
+                        }
                     }
 
-                    // 불투명하고 불에 타지 않는 블록에서 스캔 중단 (성능 최적화)
+                    // 불투명하고 불에 타지 않는 블록에서 스캔 중단
                     if (state.isOpaqueCube() && !state.getMaterial().getCanBurn()) {
+                        foundSolidGround = true;
                         break;
                     }
                 }
+            }
+        }
+    }
+
+    private static boolean applyCatchupTransformationWithChaining(WorldServer world, BlockPos pos, Block block, IBlockState state, int globalStage) {
+        if (state.getMaterial().getCanBurn()) {
+            world.setBlockState(pos, AIR_STATE, 2);
+
+            if (globalStage >= 3) {
+                propagateFireEffect(world, pos, globalStage);
+            }
+
+            return true;
+        }
+        if (globalStage >= 1) {
+            if (block instanceof BlockLeaves || block instanceof BlockDoublePlant ||
+                    block instanceof BlockSnow || block instanceof BlockTallGrass ||
+                    block instanceof BlockLilyPad) {
+                world.setBlockState(pos, AIR_STATE, 2);
+                return true;
+            }
+        }
+
+        if (globalStage >= 2) {
+            if (block instanceof BlockBush || block instanceof BlockVine ||
+                    block instanceof BlockCocoa || block instanceof BlockCactus ||
+                    block instanceof BlockSnowBlock || block instanceof BlockReed) {
+                world.setBlockState(pos, AIR_STATE, 2);
+                return true;
+            }
+        }
+
+        applyCatchupTransformation(world, pos, block, state, globalStage);
+        return false;
+    }
+
+    private static void propagateFireEffect(WorldServer world, BlockPos centerPos, int globalStage) {
+        for (EnumFacing facing : EnumFacing.VALUES) {
+            BlockPos adjacentPos = centerPos.offset(facing);
+            IBlockState adjacentState = world.getBlockState(adjacentPos);
+
+            if (adjacentState.getMaterial().getCanBurn() &&
+                    adjacentState.getBlock() != Blocks.AIR) {
+
+                world.setBlockState(adjacentPos, AIR_STATE, 2);
             }
         }
     }
