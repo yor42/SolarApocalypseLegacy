@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "*#*",
+    "#T#",
+    "*#*"
+  ],
+  "key": {
+    "#": {
+      "type": "forge:ore_dict",
+      "ore": "cobblestone"
+    },
+    "*": {
+      "type": "forge:ore_dict",
+      "ore": "plankWood"
+    },
+    "T": {
+      "item": "minecraft:torch"
+    }
+  },
+  "result": {
+    "item": "solarapocalypse:pandora_lantern",
+    "count": 1
+  }
+}
