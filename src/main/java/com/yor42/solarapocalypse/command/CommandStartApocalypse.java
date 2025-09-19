@@ -33,7 +33,7 @@ public class CommandStartApocalypse extends CommandBase {
             SolarApocalypseData data = SolarApocalypseData.get(world);
             if(data.isApocalypseStarted()){
                 if(iCommandSender instanceof EntityPlayerMP player) {
-                    player.sendMessage(new TextComponentTranslation("text.solarapocalypse.already_started"));
+                    player.sendMessage(new TextComponentTranslation("text.solarapocalypse.apocalypse_already_triggered"));
                 }
                 return;
             }

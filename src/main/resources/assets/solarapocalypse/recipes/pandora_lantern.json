@@ -7,15 +7,13 @@
   ],
   "key": {
     "#": {
-      "type": "forge:ore_dict",
-      "ore": "cobblestone"
+      "item": "#cobblestone"
     },
     "*": {
-      "type": "forge:ore_dict",
-      "ore": "plankWood"
+      "item": "#plankWood"
     },
     "T": {
-      "item": "minecraft:torch"
+      "item": "torch"
     }
   },
   "result": {
